@@ -5,7 +5,7 @@ Baixa os materiais (arquivos e pastas) das suas disciplinas do
 depois baixa só o que for novo ou tiver mudado.
 
 - Usa a mesma API do app oficial do Moodle, com login pela Senha Única (SSO). Não abre navegador.
-- Só precisa de Python 3.9+ (biblioteca padrão, sem dependências).
+- Só precisa de Python 3.10+ (biblioteca padrão, sem dependências).
 - Os arquivos ficam organizados por semestre e disciplina, com nomes legíveis:
   `2026-2/ABC1234/ABC1234_Aula-3_Slides-Arquivo.pdf`.
 - Vídeos ficam de fora por padrão, porque são grandes. Para incluir, use `--videos`.

@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Baixa os materiais das suas disciplinas do e-Disciplinas (Moodle da USP)"
 readme = "README.md"
 license = { text = "MIT" }
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = []
 authors = [{ name = "João Victor Cavalcante Miranda", email = "joaovictorcmiranda@usp.br" }]
 keywords = ["usp", "moodle", "e-disciplinas", "downloader"]
