@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edisciplinas-downloader"
+dynamic = ["version"]
+description = "Baixa os materiais das suas disciplinas do e-Disciplinas (Moodle da USP)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+edisc = "edisc.cli:main"
+
+[tool.setuptools]
+packages = ["edisc"]
+
+[tool.setuptools.dynamic]
+version = { attr = "edisc.__version__" }

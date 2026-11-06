@@ -1,0 +1,11 @@
+[Unit]
+Description=edisc: baixa materiais novos do e-Disciplinas
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+# Ajuste o caminho se não instalou com pipx (veja `command -v edisc`).
+ExecStart=%h/.local/bin/edisc sync
+# Opcional: outra pasta de downloads
+# Environment=EDISC_DIR=%h/Documentos/USP

@@ -1,0 +1,19 @@
+# Exemplo. O normal é gerar o seu com `edisc cursos --gerar`, que cria
+# ~/.config/edisciplinas/courses.yaml com todas as suas matrículas.
+#
+#   id           nome curto, usado como prefixo dos arquivos
+#   url          página da disciplina no e-Disciplinas
+#   destination  pasta de destino (relativa à pasta de downloads, ou caminho absoluto)
+#   status       em_curso | concluida (opcional)
+#   sincronizar  semanal = só confere uma vez por semana (padrão para concluídas)
+
+courses:
+  - id: ABC1234
+    url: https://edisciplinas.usp.br/course/view.php?id=000000
+    destination: 2026-2/ABC1234
+
+  - id: XYZ5678
+    url: https://edisciplinas.usp.br/course/view.php?id=000001
+    destination: ~/Documentos/USP/XYZ5678
+    status: concluida
+    sincronizar: semanal

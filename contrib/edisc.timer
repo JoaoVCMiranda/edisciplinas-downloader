@@ -1,0 +1,10 @@
+[Unit]
+Description=edisc a cada 3 horas
+
+[Timer]
+OnCalendar=*-*-* 00/3:17:00
+RandomizedDelaySec=10min
+Persistent=true
+
+[Install]
+WantedBy=timers.target
