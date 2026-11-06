@@ -10,6 +10,20 @@ readme = "README.md"
 license = { text = "MIT" }
 requires-python = ">=3.9"
 dependencies = []
+authors = [{ name = "João Victor Cavalcante Miranda", email = "joaovictorcmiranda@usp.br" }]
+keywords = ["usp", "moodle", "e-disciplinas", "downloader"]
+classifiers = [
+    "Environment :: Console",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Education",
+]
+
+[project.urls]
+Homepage = "https://github.com/JoaoVCMiranda/edisciplinas-downloader"
+Issues = "https://github.com/JoaoVCMiranda/edisciplinas-downloader/issues"
 
 [project.scripts]
 edisc = "edisc.cli:main"

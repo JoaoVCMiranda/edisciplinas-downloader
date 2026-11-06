@@ -13,11 +13,14 @@ depois baixa só o que for novo ou tiver mudado.
 ## Instalação
 
 ```sh
-pipx install git+https://github.com/JoaoVCMiranda/edisciplinas-downloader
+pipx install edisciplinas-downloader
 ```
 
-Sem pipx: `pip install --user git+https://github.com/JoaoVCMiranda/edisciplinas-downloader`.
-Também dá para clonar o repo e rodar `python3 -m edisc` de dentro da pasta.
+Sem pipx: `pip install --user edisciplinas-downloader`. Versão em desenvolvimento:
+`pipx install git+https://github.com/JoaoVCMiranda/edisciplinas-downloader`. Também dá para
+clonar o repo e rodar `python3 -m edisc` de dentro da pasta.
+
+Atualizar: `pipx upgrade edisciplinas-downloader`.
 
 ## Primeiro uso
 
@@ -111,5 +114,9 @@ mais que suficiente.
 ```sh
 python3 -m unittest discover -s tests -t .
 ```
+
+Para publicar uma versão: suba `__version__` em `edisc/__init__.py`, faça o commit e crie a tag
+`git tag v0.X.Y && git push --tags`. O workflow `publica.yml` roda os testes, gera o wheel e o
+sdist e publica no PyPI por Trusted Publishing.
 
 Licença: MIT.
