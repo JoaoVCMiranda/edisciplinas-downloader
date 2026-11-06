@@ -10,6 +10,8 @@ depois baixa só o que for novo ou tiver mudado.
   `2026-2/ABC1234/ABC1234_Aula-3_Slides-Arquivo.pdf`.
 - Vídeos ficam de fora por padrão, porque são grandes. Para incluir, use `--videos`.
 
+![edisc cursos --gerar, sync --dryrun e sync baixando os materiais](docs/primeiro-uso.gif)
+
 ## Instalação
 
 ```sh
@@ -27,7 +29,7 @@ Atualizar: `pipx upgrade edisciplinas-downloader`.
 ```sh
 edisc login --lembrar    # pede Número USP e Senha Única
 edisc cursos --gerar     # cria ~/.config/edisciplinas/courses.yaml com suas matrículas
-edisc sync --dryrun        # mostra quanto vai baixar, sem baixar nada
+edisc sync --dryrun      # mostra quanto vai baixar, sem baixar nada
 edisc sync               # baixa
 ```
 
@@ -59,6 +61,10 @@ courses:
 Veja [`courses.example.yaml`](courses.example.yaml).
 
 ## Rodar sozinho
+
+Depois da primeira vez, cada `edisc sync` só baixa o que for novo ou tiver mudado:
+
+![edisc sync sem nada novo](docs/rodada-seguinte.gif)
 
 ### systemd (Linux)
 

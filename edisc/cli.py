@@ -9,17 +9,10 @@ from pathlib import Path
 from . import __version__, api, auth, cursos, sync
 
 
-def _home():
-    try:
-        return Path.home()
-    except RuntimeError:  # sem $HOME nem entrada no passwd (container)
-        return Path("/tmp")
-
-
 def caminhos():
     env = os.environ.get
-    xdg_cfg = Path(env("XDG_CONFIG_HOME") or _home() / ".config")
-    xdg_state = Path(env("XDG_STATE_HOME") or _home() / ".local/state")
+    xdg_cfg = Path(env("XDG_CONFIG_HOME") or sync.home() / ".config")
+    xdg_state = Path(env("XDG_STATE_HOME") or sync.home() / ".local/state")
     cfg = Path(env("EDISC_CONFIG") or xdg_cfg / "edisciplinas")
     return {
         "config": cfg,
@@ -27,7 +20,7 @@ def caminhos():
         "token": cfg / "token",
         "credenciais": cfg / "credenciais",
         "estado": Path(env("EDISC_STATE") or xdg_state / "edisciplinas"),
-        "pasta": Path(env("EDISC_DIR") or _home() / "edisciplinas"),
+        "pasta": Path(env("EDISC_DIR") or sync.home() / "edisciplinas"),
     }
 
 
@@ -40,7 +33,7 @@ def _ler_courses(p, obrigatorio=True):
         return sync.parse_courses(p["courses"].read_text(encoding="utf-8"))
     except FileNotFoundError:
         if obrigatorio:
-            raise SystemExit(f"Não achei {p['courses']}. Rode `edisc cursos --gerar` primeiro.")
+            raise SystemExit(f"Não achei {sync.til(p['courses'])}. Rode `edisc cursos --gerar` primeiro.")
         return []
 
 
@@ -62,11 +55,11 @@ def cmd_login(a, p):
     _store(p).save(tok)
     if a.lembrar:
         api.write_private(str(p["credenciais"]), f"user: {user}\npass: {senha}\n")
-        print(f"Credenciais guardadas em {p['credenciais']} (0600) para renovar o token sozinho.", file=sys.stderr)
+        print(f"Credenciais guardadas em {sync.til(p['credenciais'])} (0600) para renovar o token sozinho.", file=sys.stderr)
     elif p["credenciais"].exists():
         p["credenciais"].unlink()
         print("Credenciais antigas apagadas (use --lembrar para guardar).", file=sys.stderr)
-    print(f"Ok. Token salvo em {p['token']}.", file=sys.stderr)
+    print(f"Ok. Token salvo em {sync.til(p['token'])}.", file=sys.stderr)
     return 0
 
 
@@ -83,7 +76,7 @@ def cmd_cursos(a, p):
             shutil.copy2(p["courses"], p["courses"].with_suffix(".yaml.bak"))
         p["courses"].write_text(texto + "\n", encoding="utf-8")
         n = len(sync.parse_courses(texto))
-        print(f"{n} disciplina(s) em {p['courses']} ({n - len(existentes)} nova(s)). "
+        print(f"{n} disciplina(s) em {sync.til(p['courses'])} ({n - len(existentes)} nova(s)). "
               "Revise o arquivo e apague o que não quiser baixar.", file=sys.stderr)
         return 0
     ja = {cursos.mid_da_url(e["url"]) for e in existentes}
@@ -111,7 +104,7 @@ def cmd_sync(a, p):
     except Exception:
         matr = {}
     courses = [c for c in courses if sync.a_sincronizar(c, matr, p["estado"], a.ids)]
-    print(f"{len(courses)} disciplina(s) para conferir -> {base}")
+    print(f"{len(courses)} disciplina(s) para conferir -> {sync.til(base)}")
     erros, total = [], 0
     for c in courses:
         try:
@@ -143,9 +136,9 @@ def parser():
             "  edisc login --lembrar   # Número USP + senha única\n"
             "  edisc cursos --gerar    # cria o courses.yaml com as suas matrículas\n"
             "  edisc sync              # baixa tudo\n\n"
-            f"config:    {p['courses']}\n"
-            f"downloads: {p['pasta']}  (EDISC_DIR)\n"
-            f"estado:    {p['estado']}"
+            f"config:    {sync.til(p['courses'])}\n"
+            f"downloads: {sync.til(p['pasta'])}  (EDISC_DIR)\n"
+            f"estado:    {sync.til(p['estado'])}"
         ),
     )
     ap.add_argument("--version", action="version", version=f"edisc {__version__}")

@@ -95,6 +95,19 @@ def plan_items(course_id, contents):
     return items
 
 
+def home():
+    try:
+        return Path.home()
+    except RuntimeError:  # sem $HOME nem entrada no passwd (container)
+        return Path("/tmp")
+
+
+def til(path):
+    """Caminho para mostrar: ~/... quando estiver dentro do home."""
+    s, h = str(path), str(home())
+    return "~" + s[len(h):] if s == h or s.startswith(h + "/") else s
+
+
 def _mb(n):
     return f"{n / 1048576:.0f} MB"
 
@@ -109,7 +122,7 @@ def sync_course(moodle, course, base, state_dir, log=print, videos=False, dryrun
     if pulados:
         items = [i for i in items if i not in pulados]
     if dryrun:
-        log(f"{cid}: {len(items)} arquivo(s), {_mb(sum(i['filesize'] for i in items))} -> {dest}"
+        log(f"{cid}: {len(items)} arquivo(s), {_mb(sum(i['filesize'] for i in items))} -> {til(dest)}"
             + (f" (+ {len(pulados)} vídeo(s), {_mb(sum(i['filesize'] for i in pulados))}, ignorados sem --videos)" if pulados else ""))
         return True, 0
     dest.mkdir(parents=True, exist_ok=True)
