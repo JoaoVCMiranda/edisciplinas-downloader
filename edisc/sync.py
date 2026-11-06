@@ -74,11 +74,24 @@ def plan_items(course_id, contents):
                 items.append({
                     "key": f"{mod['id']}:{f.get('filepath', '/')}{f['filename']}",
                     "name": build_filename(course_id, sec["name"], title, ext),
+                    "_alt": (build_filename(course_id, sec["name"], f"{title}_{f['filename']}", ext),
+                             build_filename(course_id, sec["name"], f"{title}_{mod['id']}_{f['filename']}", ext)),
                     "video": ext.lower() in VIDEO_EXT,
                     "fileurl": f["fileurl"],
                     "timemodified": f["timemodified"],
                     "filesize": f["filesize"],
                 })
+    # recursos diferentes com o mesmo nome na mesma seção (ex.: vários "Slides da aula"): sem isto,
+    # um sobrescreveria o outro. Só os que colidem ganham o nome do arquivo (e, se ainda colidir, o id).
+    for nivel in (0, 1):
+        cont = {}
+        for it in items:
+            cont[it["name"]] = cont.get(it["name"], 0) + 1
+        for it in items:
+            if cont[it["name"]] > 1:
+                it["name"] = it["_alt"][nivel]
+    for it in items:
+        del it["_alt"]
     return items
 
 
@@ -86,7 +99,7 @@ def _mb(n):
     return f"{n / 1048576:.0f} MB"
 
 
-def sync_course(moodle, course, base, state_dir, log=print, videos=False, seco=False):
+def sync_course(moodle, course, base, state_dir, log=print, videos=False, dryrun=False):
     """Baixa o que é novo ou mudou. Devolve (sem_falhas, n_baixados)."""
     cid = course["id"]
     dest = Path(base).expanduser() / Path(course["destination"]).expanduser()
@@ -95,7 +108,7 @@ def sync_course(moodle, course, base, state_dir, log=print, videos=False, seco=F
     pulados = [i for i in items if i["video"] and not videos]
     if pulados:
         items = [i for i in items if i not in pulados]
-    if seco:
+    if dryrun:
         log(f"{cid}: {len(items)} arquivo(s), {_mb(sum(i['filesize'] for i in items))} -> {dest}"
             + (f" (+ {len(pulados)} vídeo(s), {_mb(sum(i['filesize'] for i in pulados))}, ignorados sem --videos)" if pulados else ""))
         return True, 0

@@ -58,6 +58,20 @@ class TNomes(unittest.TestCase):
                                  "ABC1234_Listas_Exercicios-Pasta_lista1.pdf",
                                  "ABC1234_Listas_Exercicios-Pasta_lista2.pdf"])
 
+    def test_mesmo_nome_na_mesma_secao_nao_sobrescreve(self):
+        f = lambda n: {"type": "file", "filename": n, "fileurl": f"https://x/{n}", "timemodified": 1, "filesize": 1}
+        sec = [{"name": "S", "modules": [
+            {"id": 10, "modname": "resource", "name": "Slides", "contents": [f("aula1.pdf")]},
+            {"id": 11, "modname": "resource", "name": "Slides", "contents": [f("aula2.pdf")]},
+            {"id": 12, "modname": "resource", "name": "Slides", "contents": [f("aula2.pdf")]},
+            {"id": 13, "modname": "resource", "name": "Outro", "contents": [f("x.pdf")]},
+        ]}]
+        names = [i["name"] for i in sync.plan_items("X", sec)]
+        self.assertEqual(len(set(names)), 4)
+        self.assertEqual(names[0], "X_S_Slides-Arquivo_aula1.pdf")
+        self.assertEqual(names[1:3], ["X_S_Slides-Arquivo_11_aula2.pdf", "X_S_Slides-Arquivo_12_aula2.pdf"])
+        self.assertEqual(names[3], "X_S_Outro-Arquivo.pdf")  # quem não colide mantém o nome
+
     def test_nome_longo_truncado(self):
         n = sync.build_filename("X", "sec", "t" * 400 + ".pdf", ".pdf")
         self.assertLessEqual(len(n.encode()), 240)
@@ -124,10 +138,10 @@ class TSync(unittest.TestCase):
         sync.sync_course(m2, COURSE, self.base, self.state, quiet, videos=True)
         self.assertEqual(m2.calls, ["https://x/g.mp4"])
 
-    def test_seco_nao_baixa(self):
+    def test_dryrun_nao_baixa(self):
         m = Fake(1, video=True)
         out = []
-        self.assertEqual(sync.sync_course(m, COURSE, self.base, self.state, out.append, seco=True), (True, 0))
+        self.assertEqual(sync.sync_course(m, COURSE, self.base, self.state, out.append, dryrun=True), (True, 0))
         self.assertEqual(m.calls, [])
         self.assertIn("1 vídeo(s)", out[0])
 

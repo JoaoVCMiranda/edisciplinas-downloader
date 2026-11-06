@@ -24,7 +24,7 @@ Também dá para clonar o repo e rodar `python3 -m edisc` de dentro da pasta.
 ```sh
 edisc login --lembrar    # pede Número USP e Senha Única
 edisc cursos --gerar     # cria ~/.config/edisciplinas/courses.yaml com suas matrículas
-edisc sync --seco        # mostra quanto vai baixar, sem baixar nada
+edisc sync --dryrun        # mostra quanto vai baixar, sem baixar nada
 edisc sync               # baixa
 ```
 

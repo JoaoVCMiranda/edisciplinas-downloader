@@ -115,7 +115,7 @@ def cmd_sync(a, p):
     erros, total = [], 0
     for c in courses:
         try:
-            ok, n = sync.sync_course(moodle, c, base, p["estado"], videos=a.videos, seco=a.seco)
+            ok, n = sync.sync_course(moodle, c, base, p["estado"], videos=a.videos, dryrun=a.dryrun)
             total += n
             if not ok:
                 erros.append(c["id"])
@@ -127,7 +127,7 @@ def cmd_sync(a, p):
     if erros:
         print(f"Terminou com erro em: {', '.join(erros)}", file=sys.stderr)
         return 1
-    if not a.seco:
+    if not a.dryrun:
         print(f"Pronto: {total} arquivo(s) novo(s)/alterado(s).")
     return 0
 
@@ -163,7 +163,7 @@ def parser():
     sy = sub.add_parser("sync", help="baixa o que é novo ou mudou")
     sy.add_argument("ids", nargs="*", help="só estas disciplinas (id do courses.yaml)")
     sy.add_argument("--videos", action="store_true", help="baixa também os vídeos (podem ser grandes)")
-    sy.add_argument("--seco", action="store_true", help="só mostra quanto seria baixado")
+    sy.add_argument("--dryrun", "--dry-run", dest="dryrun", action="store_true", help="só mostra quanto seria baixado")
     sy.add_argument("--pasta", help="pasta de downloads (padrão: EDISC_DIR ou ~/edisciplinas)")
     sy.set_defaults(fn=cmd_sync)
     return ap
