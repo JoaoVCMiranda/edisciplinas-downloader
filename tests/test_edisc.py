@@ -241,6 +241,8 @@ class TApi(unittest.TestCase):
     def _retry(self, falhas):
         m = api.Moodle.__new__(api.Moodle)
         m.token, m.n = "t", 0
+        m.esperas = []
+        m.dormir = m.esperas.append
 
         class S:
             @staticmethod
@@ -257,13 +259,35 @@ class TApi(unittest.TestCase):
 
     def test_retry(self):
         m = self._retry([TimeoutError(), TimeoutError()])
-        esperas = []
-        self.assertEqual(m.baixar("u", "t", dormir=esperas.append), 7)
-        self.assertEqual((m.n, esperas), (3, [3, 10]))
+        self.assertEqual(m.baixar("u", "t"), 7)
+        self.assertEqual((m.n, m.esperas), (3, [3, 10]))
+        m = self._retry([TimeoutError()] * 5)
+        with self.assertRaises(TimeoutError):
+            m.baixar("u", "t")
+        self.assertEqual(m.n, 3)
         m = self._retry([urllib.error.HTTPError("u", 403, "x", {}, None)])
         with self.assertRaises(urllib.error.HTTPError):
-            m.baixar("u", "t", dormir=lambda s: None)
+            m.baixar("u", "t")
         self.assertEqual(m.n, 1)
+        m = self._retry([api.InvalidToken()])
+        self.assertEqual(m.baixar("u", "t"), 7)
+        self.assertEqual(m.token, "novo")
+
+    def test_call_repete_queda_de_conexao(self):
+        import http.client
+        m = api.Moodle.__new__(api.Moodle)
+        m.token, esperas = "t", []
+        m.dormir = esperas.append
+        seq = [http.client.RemoteDisconnected("x"), {"ok": 1}]
+
+        def raw(fn, p):
+            r = seq.pop(0)
+            if isinstance(r, Exception):
+                raise r
+            return r
+        m._raw = raw
+        self.assertEqual(m.call("f"), {"ok": 1})
+        self.assertEqual(esperas, [3])
 
 
 class TCli(unittest.TestCase):

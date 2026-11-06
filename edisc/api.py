@@ -1,4 +1,5 @@
 """Cliente mínimo da REST API do Moodle (serviço moodle_mobile_app) — só stdlib."""
+import http.client
 import json
 import os
 import socket
@@ -10,6 +11,16 @@ import urllib.request
 from . import auth
 
 REST = f"{auth.SITE}/webservice/rest/server.php"
+
+
+TRANSITORIOS = (TimeoutError, socket.timeout, ConnectionError, http.client.HTTPException, urllib.error.URLError)
+
+
+def transitorio(e):
+    """Vale tentar de novo? HTTPError só em 408/429/5xx; queda de conexão/timeout sempre."""
+    if isinstance(e, urllib.error.HTTPError):
+        return e.code in (408, 429) or e.code >= 500
+    return isinstance(e, TRANSITORIOS)
 
 
 class InvalidToken(Exception):
@@ -83,15 +94,28 @@ class Moodle:
             raise ApiError(f"{fn}: {data.get('errorcode')}: {data.get('message')}")
         return data
 
-    def call(self, fn, **params):
-        try:
-            return self._raw(fn, params)
-        except InvalidToken:
-            self.token = self.store.renew()
+    espera = (3, 10)  # segundos entre tentativas em falha transitória
+    dormir = staticmethod(time.sleep)
+
+    def _com_retry(self, f):
+        """f() com renovação de token (uma vez) e retry com backoff em falha transitória."""
+        renovou = False
+        for i in range(len(self.espera) + 1):
             try:
-                return self._raw(fn, params)
+                return f()
             except InvalidToken:
-                raise LoginError(f"{fn}: token recém-renovado também inválido") from None
+                if renovou:
+                    raise LoginError("token recém-renovado também inválido") from None
+                renovou = True
+                self.token = self.store.renew()
+            except TRANSITORIOS as e:
+                if not transitorio(e) or i == len(self.espera):
+                    raise
+                self.dormir(self.espera[i])
+        return f()  # última tentativa depois de renovar o token no fim do laço
+
+    def call(self, fn, **params):
+        return self._com_retry(lambda: self._raw(fn, params))
 
     def download(self, fileurl, dest_tmp):
         """Baixa fileurl (+token) para dest_tmp; devolve nº de bytes. Levanta InvalidToken se o servidor devolver JSON de erro."""
@@ -119,22 +143,6 @@ class Moodle:
                 n += len(chunk)
         return n
 
-    def baixar(self, fileurl, dest_tmp, tentativas=3, espera=(3, 10), dormir=time.sleep):
-        """download() com renovação de token e retry com backoff para falha transitória (timeout, rede, 5xx/429).
-
-        403/404/410 e demais erros definitivos sobem na primeira vez.
-        """
-        renovou = False
-        for i in range(tentativas):
-            try:
-                return self.download(fileurl, dest_tmp)
-            except InvalidToken:
-                if renovou:
-                    raise
-                renovou = True
-                self.token = self.store.renew()
-            except (TimeoutError, socket.timeout, ConnectionError, urllib.error.URLError, urllib.error.HTTPError) as e:
-                definitivo = isinstance(e, urllib.error.HTTPError) and e.code not in (408, 429) and e.code < 500
-                if definitivo or i == tentativas - 1:
-                    raise
-                dormir(espera[min(i, len(espera) - 1)])
+    def baixar(self, fileurl, dest_tmp):
+        """download() com renovação de token e retry (timeout, rede, 5xx/429); 403/404/410 sobem na hora."""
+        return self._com_retry(lambda: self.download(fileurl, dest_tmp))
