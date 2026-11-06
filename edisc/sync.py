@@ -56,7 +56,10 @@ def parse_courses(text):
 
 
 def plan_items(course_id, contents):
-    """core_course_get_contents -> lista de arquivos {key, name, fileurl, timemodified, filesize, video}."""
+    """core_course_get_contents -> lista de arquivos.
+
+    Cada item: key, name (nome no disco), section, title, filename, murl, modname, video, fileurl, timemodified, filesize.
+    """
     items = []
     for sec in contents:
         for mod in sec.get("modules", []):
@@ -74,6 +77,11 @@ def plan_items(course_id, contents):
                 items.append({
                     "key": f"{mod['id']}:{f.get('filepath', '/')}{f['filename']}",
                     "name": build_filename(course_id, sec["name"], title, ext),
+                    "section": sec["name"],
+                    "title": mod["name"],
+                    "filename": f["filename"],
+                    "murl": mod.get("url"),
+                    "modname": mod["modname"],
                     "_alt": (build_filename(course_id, sec["name"], f"{title}_{f['filename']}", ext),
                              build_filename(course_id, sec["name"], f"{title}_{mod['id']}_{f['filename']}", ext)),
                     "video": ext.lower() in VIDEO_EXT,
